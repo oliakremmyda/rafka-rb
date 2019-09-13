@@ -42,6 +42,9 @@ module Rafka
       Rafka.wrap_errors do
         redis_key = "topics:#{topic}"
         redis_key << ":#{key}" if key
+        if key && topic == "skroutz.model-updates"
+          puts "Sending message for product: #{key}"
+        end
         @redis.rpushx(redis_key, msg.to_s)
       end
     end
