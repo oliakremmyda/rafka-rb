@@ -1,5 +1,6 @@
 require "json"
 require "securerandom"
+require "logger"
 
 module Rafka
   # A Rafka-backed Kafka consumer that consumes messages from a specific topic
@@ -17,6 +18,8 @@ module Rafka
 
     # @return [String] the argument passed to BLPOP
     attr_reader :blpop_arg
+
+    attr_accessor :logger
 
     # Initialize a new consumer.
     #
@@ -49,6 +52,10 @@ module Rafka
       @redis = Redis.new(@redis_opts)
       @blpop_arg = "topics:#{@rafka_opts[:topic]}"
       @blpop_arg << ":#{opts[:librdkafka].to_json}" if !opts[:librdkafka].empty?
+
+      # Initialize with a default logger
+      @logger = Logger.new($stdout)
+      @logger.level = Logger::INFO
     end
 
     # Consumes the next message.
