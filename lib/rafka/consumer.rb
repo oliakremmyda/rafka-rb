@@ -192,7 +192,15 @@ module Rafka
       tp.each do |topic, po|
         po.each do |partition, offset|
           Rafka.wrap_errors do
-            @redis.rpush("acks", "#{topic}:#{partition}:#{offset}")
+            begin
+              @redis.rpush("acks", "#{topic}:#{partition}:#{offset}")
+            rescue Redis::CommandError => e
+              if e.message.start_with?("CONS No consumer registered for Client")
+                @logger.warn("CONS Cannot commit offsets, connection with rafka was temporarly lost.")
+              else
+                raise e
+              end
+            end
           end
         end
       end

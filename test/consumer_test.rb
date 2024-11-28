@@ -70,4 +70,26 @@ class ConsumerTest < Minitest::Test
     cons = Rafka::Consumer.new(group: "foo", topic: "bar")
     assert_equal cons.blpop_arg, "topics:bar"
   end
+
+  def test_commit
+    cons = Rafka::Consumer.new(
+      group: "foo", topic: "bar", librdkafka: { test1: 2, test2: "a", "foo.bar" => true }
+    )
+    # Supress Outputs
+    cons.logger = Logger.new(File::NULL)
+
+    msg = Rafka::Message.new(["topic", "foo", "partition", 1, "offset", 1, "value", "a"])
+
+    # Test that No consumer registered for Client ERROR does not raise exception
+    cons.redis.stub(:rpush, ->(*args) { raise Redis::CommandError, "CONS No consumer registered for Client"} ) do
+      cons.send(:commit, msg)
+    end
+
+    # Test that other ERRORs do raise exceptions
+    cons.redis.stub(:rpush, ->(*args) { raise Redis::CommandError, "CONS Server Shutdown"} ) do
+      assert_raises(StandardError, "Stubbed exception for get") do
+        cons.send(:commit, msg)
+      end
+    end
+  end
 end
