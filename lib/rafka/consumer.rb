@@ -195,7 +195,7 @@ module Rafka
             begin
               @logger.info("Sleeping for 10secs before commiting Offset #{offset} ...")
               sleep 10
-              @logger.info("Wokeup!")
+              @logger.info("Wokeup")
               @redis.rpush("acks", "#{topic}:#{partition}:#{offset}")
             rescue Redis::CommandError => e
               if e.message.start_with?("CONS No consumer registered for Client")
