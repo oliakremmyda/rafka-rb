@@ -185,6 +185,7 @@ module Rafka
       tp.each do |topic, po|
         po.each do |partition, offset|
           Rafka.wrap_errors do
+            sleep 10
             @redis.rpush("acks", "#{topic}:#{partition}:#{offset}")
           end
         end
